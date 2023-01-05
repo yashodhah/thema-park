@@ -27,9 +27,9 @@ Resources:
   UpdateRides:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/main/java
-      Handler: app.handler
-      Runtime: nodejs14.x
+      CodeUri: target/blank-java-1.0-SNAPSHOT.jar
+      Handler: example.Handler::handleRequest
+      Runtime: java11
       MemorySize: 128
       Environment:
         Variables:
