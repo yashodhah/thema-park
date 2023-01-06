@@ -5,9 +5,8 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 
 import java.util.Date;
 
-@DynamoDBTable(tableName="Ride")
+@DynamoDBTable(tableName="THEME_PARK_RIDES")
 public class Ride {
-
     @DynamoDBAttribute(attributeName = "ID")
     public String id;
     @DynamoDBAttribute(attributeName = "wait")

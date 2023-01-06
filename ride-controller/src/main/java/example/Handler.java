@@ -1,5 +1,7 @@
 package example;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +11,7 @@ import java.util.List;
 
 public class Handler {
     public void handleRequest(Object event, Context context) {
-
+        setVariables();
         RideService rideService = new RideService();
         ArrayList<RideMessage> messages = new ArrayList<>();
 
@@ -19,7 +21,6 @@ public class Handler {
             rideService.updateRide(ride);
             messages.add(getRideMessage(ride));
         });
-
     }
 
     private void sendToSns(Ride ride) {
@@ -78,7 +79,7 @@ public class Handler {
 
     private void setVariables() {
         AppSettings.MASTER_TABLE = System.getenv("DDBtable");
-//        AppSettings.REGION = System.getenv("REGION");
         AppSettings.TOPIC_ARN = System.getenv("TopicArn");
+//        AppSettings.REGION = Region.getRegion(Regions.valueOf(System.getenv("REGION").toUpperCase())); ;
     }
 }

@@ -3,27 +3,30 @@ package example;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 
 import java.util.Date;
 import java.util.List;
 
 public class RideService {
-    AmazonDynamoDB client;
+    private final AmazonDynamoDB client;
+    private final DynamoDBMapper mapper;
+    private final DynamoDBMapperConfig config;
 
     public RideService() {
+        config = new DynamoDBMapperConfig.Builder().withTableNameOverride(DynamoDBMapperConfig.TableNameOverride.withTableNameReplacement(AppSettings.MASTER_TABLE))
+                .build();
         client = AmazonDynamoDBClientBuilder.standard().build();
+        mapper = new DynamoDBMapper(client, config);
     }
 
     public List<Ride> getRides() {
-        DynamoDBMapper mapper = new DynamoDBMapper(client);
         return mapper.scan(Ride.class, new DynamoDBScanExpression());
     }
 
     public void updateRide(Ride ride) {
-        DynamoDBMapper mapper = new DynamoDBMapper(client);
         ride.lastUpdated = new Date();
-
         mapper.save(ride);
     }
 }

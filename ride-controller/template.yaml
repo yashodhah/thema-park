@@ -12,6 +12,7 @@ Resources:
   DDBtable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: "THEME_PARK_RIDES"
       AttributeDefinitions:
         - AttributeName: ID
           AttributeType: S
@@ -27,7 +28,7 @@ Resources:
   UpdateRides:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: target/blank-java-1.0-SNAPSHOT.jar
+      CodeUri: target/ride-controller-1.0-SNAPSHOT.jar
       Handler: example.Handler::handleRequest
       Runtime: java11
       MemorySize: 128
