@@ -21,7 +21,7 @@ Resources:
   UpdateRides:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://theme-park-sam-deploys-008744601422/fa9ed2d616e5cb95e708f9a3c0b5ac1f
+      CodeUri: s3://theme-park-sam-deploys-008744601422/e3829d82601edcb094b1de9265fcfb99
       Handler: example.Handler::handleRequest
       Runtime: java11
       MemorySize: 128

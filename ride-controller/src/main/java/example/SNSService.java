@@ -13,17 +13,15 @@ public class SNSService {
         try {
             SnsClient snsClient = SnsClient.builder()
                     .region(AppSettings.REGION)
-                    .credentialsProvider(ProfileCredentialsProvider.create())
                     .build();
 
             PublishRequest request = PublishRequest.builder()
                     .message(message)
-                    .topicArn(AppSettings.TOPIC_ARN)
+                    .topicArn(topicArn)
                     .build();
 
             PublishResponse result = snsClient.publish(request);
             System.out.println(result.messageId() + " Message sent. Status is " + result.sdkHttpResponse().statusCode());
-
         } catch (SnsException e) {
             System.err.println(e.awsErrorDetails().errorMessage());
         }

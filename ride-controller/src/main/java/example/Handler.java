@@ -52,7 +52,7 @@ public class Handler {
     private RideMessage getRideMessage(Ride ride) {
         RideMessage rideMessage = new RideMessage();
 
-        rideMessage.rideId = ride.id;
+        rideMessage.rideId = ride.getId();
         rideMessage.inService = ride.inService;
         rideMessage.wait = ride.wait;
         rideMessage.lastUpdated = ride.lastUpdated;
