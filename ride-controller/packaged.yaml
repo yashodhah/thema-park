@@ -21,6 +21,8 @@ Resources:
   UpdateRides:
     Type: AWS::Serverless::Function
     Properties:
+      Architectures:
+      - arm64
       CodeUri: s3://theme-park-sam-deploys-008744601422/e3829d82601edcb094b1de9265fcfb99
       Handler: example.Handler::handleRequest
       Runtime: java11

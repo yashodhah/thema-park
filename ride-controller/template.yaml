@@ -28,6 +28,7 @@ Resources:
   UpdateRides:
     Type: AWS::Serverless::Function
     Properties:
+      Architectures: [ arm64 ]
       CodeUri: target/ride-controller-1.0-SNAPSHOT.jar
       Handler: example.Handler::handleRequest
       Runtime: java11
