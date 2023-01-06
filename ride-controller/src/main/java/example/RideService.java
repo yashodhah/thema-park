@@ -12,13 +12,13 @@ import java.util.List;
 public class RideService {
     private final AmazonDynamoDB client;
     private final DynamoDBMapper mapper;
-    private final DynamoDBMapperConfig config;
+//    private final DynamoDBMapperConfig config;
 
     public RideService() {
-        config = new DynamoDBMapperConfig.Builder().withTableNameOverride(DynamoDBMapperConfig.TableNameOverride.withTableNameReplacement(AppSettings.MASTER_TABLE))
-                .build();
+//        config = new DynamoDBMapperConfig.Builder().withTableNameOverride(DynamoDBMapperConfig.TableNameOverride.withTableNameReplacement(AppSettings.MASTER_TABLE))
+//                .build();
         client = AmazonDynamoDBClientBuilder.standard().build();
-        mapper = new DynamoDBMapper(client, config);
+        mapper = new DynamoDBMapper(client);
     }
 
     public List<Ride> getRides() {

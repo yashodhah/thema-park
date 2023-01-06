@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Innovator Island - Flow & Traffic Controller (ride queue times service).
+Resources:
+  FATcontroller:
+    Type: AWS::SNS::Topic
+  DDBtable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: THEME_PARK_RIDES
+      AttributeDefinitions:
+      - AttributeName: ID
+        AttributeType: S
+      KeySchema:
+      - AttributeName: ID
+        KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  UpdateRides:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://theme-park-sam-deploys-008744601422/fa9ed2d616e5cb95e708f9a3c0b5ac1f
+      Handler: example.Handler::handleRequest
+      Runtime: java11
+      MemorySize: 128
+      Environment:
+        Variables:
+          DDBtable:
+            Ref: DDBtable
+          TopicArn:
+            Ref: FATcontroller
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: DDBtable
+      - Statement:
+        - Effect: Allow
+          Resource:
+            Ref: FATcontroller
+          Action:
+          - sns:Publish
+      Events:
+        UpdateRidesEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+  AppConfigurationLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://theme-park-sam-deploys-008744601422/c1d2f571e12468c11eae803a21e6bbcb
+      Handler: app.handler
+      Runtime: nodejs14.x
+      Timeout: 15
+      MemorySize: 128
+      Environment:
+        Variables:
+          DDBtable:
+            Ref: DDBtable
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: DDBtable
+  DeploymentCustomResource:
+    Type: Custom::AppConfiguration
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+        - AppConfigurationLambda
+        - Arn
+Outputs:
+  RideUpdatesSNStopic:
+    Description: SNS topic to receive ride uptime updates
+    Value:
+      Ref: FATcontroller

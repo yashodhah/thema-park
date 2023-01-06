@@ -1,8 +1,7 @@
 package example;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -11,24 +10,39 @@ import java.util.List;
 
 public class Handler {
     public void handleRequest(Object event, Context context) {
-        setVariables();
-        RideService rideService = new RideService();
-        ArrayList<RideMessage> messages = new ArrayList<>();
+        System.out.println("Hello world");
+//        LambdaLogger logger = context.getLogger();
+//        logger.log("Hello world from logger");
 
-        List<Ride> rideList = rideService.getRides();
+        try {
+            System.out.println("Setting env variables");
+            setVariables();
+            RideService rideService = new RideService();
+            ArrayList<RideMessage> messages = new ArrayList<>();
 
-        rideList.stream().map(ride -> updateRide(ride)).forEach(ride -> {
-            rideService.updateRide(ride);
-            messages.add(getRideMessage(ride));
-        });
+            System.out.println("Getting rides");
+            List<Ride> rideList = rideService.getRides();
+
+            System.out.println("Update rides");
+            rideList.stream().map(ride -> updateRide(ride)).forEach(ride -> {
+                rideService.updateRide(ride);
+                messages.add(getRideMessage(ride));
+            });
+
+            System.out.println("Send rides to SNS topic");
+            sendToSns(messages);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
     }
 
-    private void sendToSns(Ride ride) {
+    private void sendToSns(List<RideMessage> rideMessagesList) {
         SNSService snsService = new SNSService();
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            String json = mapper.writeValueAsString(ride);
+            String json = mapper.writeValueAsString(rideMessagesList);
             snsService.pubTopic(json, AppSettings.TOPIC_ARN);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -78,8 +92,10 @@ public class Handler {
     }
 
     private void setVariables() {
+        System.out.println("reading sys vars");
+        System.out.println(System.getenv("DDBtable"));
+
         AppSettings.MASTER_TABLE = System.getenv("DDBtable");
         AppSettings.TOPIC_ARN = System.getenv("TopicArn");
-//        AppSettings.REGION = Region.getRegion(Regions.valueOf(System.getenv("REGION").toUpperCase())); ;
     }
 }
