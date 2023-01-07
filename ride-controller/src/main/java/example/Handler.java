@@ -1,49 +1,64 @@
 package example;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Handler {
     public void handleRequest(Object event, Context context) {
-        System.out.println("Hello world");
-//        LambdaLogger logger = context.getLogger();
-//        logger.log("Hello world from logger");
-
         try {
-            System.out.println("Setting env variables");
             setVariables();
             RideService rideService = new RideService();
-            ArrayList<RideMessage> messages = new ArrayList<>();
+            SNSService snsService = new SNSService();
 
-            System.out.println("Getting rides");
-            List<Ride> rideList = rideService.getRides();
-
-            System.out.println("Update rides");
-            rideList.stream().map(ride -> updateRide(ride)).forEach(ride -> {
-                rideService.updateRide(ride);
-                messages.add(getRideMessage(ride));
-            });
-
-            System.out.println("Send rides to SNS topic");
-            sendToSns(messages);
+            handlerFunction(rideService, snsService);
         } catch (Exception e) {
-            System.out.println(e);
             e.printStackTrace();
         }
     }
 
-    private void sendToSns(List<RideMessage> rideMessagesList) {
-        SNSService snsService = new SNSService();
+    public void handlerFunction(RideService rideService, SNSService snsService) {
+        ArrayList<RideMessage> messages = new ArrayList<>();
+        System.out.println("get rides");
+        List<Ride> rideList = rideService.getRides();
+
+//        printDBRides(rideList);
+
+        rideList.stream().map(ride -> updateRide(ride)).forEach(updateRide -> {
+            updateRide.setLastUpdated((int) new Timestamp(System.currentTimeMillis()).getTime());
+
+            rideService.updateRide(updateRide);
+            messages.add(getRideMessage(updateRide));
+        });
+
+        System.out.println("send ride updates to SNS");
+        sendToSns(snsService, messages);
+    }
+
+    private void printDBRides(List<Ride> rideList) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            System.out.println("rides " + mapper.writeValueAsString(rideList));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendToSns(SNSService snsService, List<RideMessage> rideMessagesList) {
+        JSONObject snsMsg = new JSONObject();
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            String json = mapper.writeValueAsString(rideMessagesList);
-            snsService.pubTopic(json, AppSettings.TOPIC_ARN);
+            snsMsg.put("msg", mapper.writeValueAsString(rideMessagesList));
+            snsMsg.put("type", "summary");
+
+            snsService.pubTopic(snsMsg.toString(), AppSettings.TOPIC_ARN);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -53,48 +68,46 @@ public class Handler {
         RideMessage rideMessage = new RideMessage();
 
         rideMessage.rideId = ride.getId();
-        rideMessage.inService = ride.inService;
-        rideMessage.wait = ride.wait;
-        rideMessage.lastUpdated = ride.lastUpdated;
+        rideMessage.inService = ride.isInService();
+        rideMessage.wait = ride.getWait();
+        rideMessage.lastUpdated = ride.getLastUpdated();
 
         return rideMessage;
     }
 
     public Ride updateRide(Ride ride) {
-        if (ride.wait == 0) {
-            ride.inService = true;
+        if (ride.getWait() == 0) {
+            ride.setInService(true);
         }
 
-        if (ride.inService) {
-            if (Math.random() < ride.closureProbability) {
-                ride.inService = false;
-                ride.wait = (5 * ride.waitChangeRate);
-                ride.targetWait = 0;
+        if (ride.isInService()) {
+            if (Math.random() < ride.getClosureProbability()) {
+                ride.setInService(false);
+                ride.setWait(5 * ride.getWaitChangeRate());
+                ride.setTargetWait(0);
+
                 return ride;
             }
         }
 
         // If current wait is current target wait, set new targetWait
-        if (ride.wait == ride.targetWait) {
-            ride.targetWait = Math.floor(Math.random() * ride.maxWait);
+        if (ride.getWait() == ride.getTargetWait()) {
+            ride.setTargetWait((int) Math.floor(Math.random() * ride.getMaxWait()));
         }
 
         // Move wait towards targetWait
-        if (ride.wait < ride.targetWait) {
-            ride.wait += ride.waitChangeRate;
-            ride.wait = Math.min(ride.wait, ride.targetWait);
+        if (ride.getWait() < ride.getTargetWait()) {
+            ride.setWait(ride.getWait() + ride.getWaitChangeRate());
+            ride.setWait(Math.min(ride.getWait(), ride.getTargetWait()));
         } else {
-            ride.wait -= ride.waitChangeRate;
-            ride.wait = Math.max(ride.wait, ride.targetWait);
+            ride.setWait(ride.getWait() - ride.getWaitChangeRate());
+            ride.setWait(Math.max(ride.getWait(), ride.getTargetWait()));
         }
 
         return ride;
     }
 
     private void setVariables() {
-        System.out.println("reading sys vars");
-        System.out.println(System.getenv("DDBtable"));
-
         AppSettings.MASTER_TABLE = System.getenv("DDBtable");
         AppSettings.TOPIC_ARN = System.getenv("TopicArn");
     }

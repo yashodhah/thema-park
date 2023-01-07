@@ -38,6 +38,7 @@ const iotPublish = async function (topic, message) {
             qos: 0,
             payload: JSON.stringify(message)
         }).promise();
+
         console.log('iotPublish success')
     } catch (err) {
         console.error('iotPublish error:', err)

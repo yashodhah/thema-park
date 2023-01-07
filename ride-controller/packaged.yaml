@@ -23,7 +23,7 @@ Resources:
     Properties:
       Architectures:
       - arm64
-      CodeUri: s3://theme-park-sam-deploys-008744601422/e3829d82601edcb094b1de9265fcfb99
+      CodeUri: s3://theme-park-sam-deploys-008744601422/5cba48bb9d24f267cc75eed0e6e5019f
       Handler: example.Handler::handleRequest
       Runtime: java11
       MemorySize: 128
@@ -51,7 +51,7 @@ Resources:
   AppConfigurationLambda:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://theme-park-sam-deploys-008744601422/c1d2f571e12468c11eae803a21e6bbcb
+      CodeUri: s3://theme-park-sam-deploys-008744601422/6a49c688d33ec07054e50b87260ab7d6
       Handler: app.handler
       Runtime: nodejs14.x
       Timeout: 15
