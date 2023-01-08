@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Innovator Island - 3 Photos - Part 2.
+Parameters:
+  FinalBucketName:
+    Type: String
+    Description: Name of the final S3 bucket
+Globals:
+  Function:
+    Timeout: 10
+Resources:
+  CompositeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://theme-park-sam-deploys-008744601422/21ba695575b407a741dcd54e7c88c67f
+      Handler: app.handler
+      Runtime: nodejs14.x
+      MemorySize: 2048
+      Environment:
+        Variables:
+          OUTPUT_BUCKET_NAME:
+            Ref: FinalBucketName
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - s3:*
+    Metadata:
+      SamResourceId: CompositeFunction

@@ -23,7 +23,7 @@ Resources:
     Properties:
       Architectures:
       - arm64
-      CodeUri: s3://theme-park-sam-deploys-008744601422/5cba48bb9d24f267cc75eed0e6e5019f
+      CodeUri: s3://theme-park-sam-deploys-008744601422/cab21cdc8fc37161cc11124d1c1e4df6
       Handler: example.Handler::handleRequest
       Runtime: java11
       MemorySize: 128

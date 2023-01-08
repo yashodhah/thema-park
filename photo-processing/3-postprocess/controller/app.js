@@ -4,7 +4,7 @@
 
 const AWS = require('aws-sdk')
 const ddb = new AWS.DynamoDB.DocumentClient()
-const iotdata = new AWS.IotData({ endpoint: process.env.IOT_DATA_ENDPOINT })
+const iotdata = new AWS.IotData({endpoint: process.env.IOT_DATA_ENDPOINT})
 const IOT_TOPIC = 'theme-park-rides'
 
 /* MODULE 3 - Post Processing
@@ -15,7 +15,7 @@ const IOT_TOPIC = 'theme-park-rides'
 
 // Commits the latest message to DynamoDB
 const saveToDDB = async function (params) {
-    try  {
+    try {
         await ddb.put({
             TableName: process.env.DDB_TABLE_NAME,
             Item: {
@@ -33,34 +33,35 @@ const saveToDDB = async function (params) {
 
 // Publishes the message to the IoT topic
 const iotPublish = async function (message) {
-  const wrappedMessage = JSON.stringify({
-    level: 'info',
-    type: 'photoProcessed',
-    message
-  })
-  console.log('iotPublish msg: ', wrappedMessage)
-  try {
-    await iotdata.publish({
-      topic: IOT_TOPIC,
-      qos: 0,
-      payload: wrappedMessage
-    }).promise()
-    console.log('iotPublish success')
-  } catch (err) {
-    console.error('iotPublish error:', err)
-  }
+    const wrappedMessage = JSON.stringify({
+        level: 'info',
+        type: 'photoProcessed',
+        message
+    })
+    console.log('iotPublish msg: ', wrappedMessage)
+    try {
+        await iotdata.publish({
+            topic: IOT_TOPIC,
+            qos: 0,
+            payload: wrappedMessage
+        }).promise()
+        console.log('iotPublish success')
+    } catch (err) {
+        console.error('iotPublish error:', err)
+    }
 }
 
 // The handler invoked by Lambda.
 exports.handler = async (event) => {
     console.log('Event:', JSON.stringify(event))
-    
+
     const params = {
-      ObjectKey: event.Records[0].s3.object.key,
-      URL: `https://${event.Records[0].s3.bucket.name}.s3.amazonaws.com/${event.Records[0].s3.object.key}`
+        ObjectKey: event.Records[0].s3.object.key,
+        URL: `https://${event.Records[0].s3.bucket.name}.s3.amazonaws.com/${event.Records[0].s3.object.key}`
     }
 
     console.log(params)
+
     await saveToDDB(params);
     await iotPublish(params)
 

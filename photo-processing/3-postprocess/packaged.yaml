@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Theme park photo control - post-process
+Parameters:
+  DynamoDBTableName:
+    Type: String
+    Description: Main Theme Park app table
+  IOTendpoint:
+    Type: String
+    Description: Theme Park IoT endpoint
+Globals:
+  Function:
+    Timeout: 3
+Resources:
+  PostProcessFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://theme-park-sam-deploys-008744601422/d92dbca7646886d3c83e6d22e13a8f31
+      Handler: app.handler
+      MemorySize: 128
+      Runtime: nodejs16.x
+      Environment:
+        Variables:
+          DDB_TABLE_NAME:
+            Ref: DynamoDBTableName
+          IOT_DATA_ENDPOINT:
+            Ref: IOTendpoint
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - iot:*
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: DynamoDBTableName
+    Metadata:
+      SamResourceId: PostProcessFunction
+Outputs:
+  PostProcessFunction:
+    Export:
+      Name: PostProcessFunction
+    Value:
+      Fn::GetAtt:
+      - PostProcessFunction
+      - Arn

@@ -7,7 +7,6 @@ import org.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class Handler {
@@ -27,8 +26,6 @@ public class Handler {
         ArrayList<RideMessage> messages = new ArrayList<>();
         System.out.println("get rides");
         List<Ride> rideList = rideService.getRides();
-
-//        printDBRides(rideList);
 
         rideList.stream().map(ride -> updateRide(ride)).forEach(updateRide -> {
             updateRide.setLastUpdated((int) new Timestamp(System.currentTimeMillis()).getTime());
